@@ -2,7 +2,6 @@
 
 uint16_t get_frequency(uint32_t index, uint32_t sample_rate) {
     double_t multiplier = (double_t) (sample_rate / (double_t) BUFF_SIZE);
-    //printf("%f, i=%d, sr=%d\n", multiplier, index, sample_rate);
     uint16_t frequency = (double_t) index * multiplier;
     if (frequency > (sample_rate / 2))
         frequency = sample_rate - frequency;
@@ -13,8 +12,8 @@ void signal_filter(Complex data_freq_domain[], const uint32_t sample_rate, const
     for (uint32_t i = 1; i < sample_count; i++) {
         double_t magnitude = sqrt(pow(creal(data_freq_domain[i]), 2) + pow(cimag(data_freq_domain[i]), 2));
         uint16_t freq = get_frequency(i, sample_rate);
-        if (magnitude > 100) {
-            //printf("Freq to remove: %dHz, magnitude: %g\n", freq, magnitude);
+        if (freq > 890 && freq < 950) {
+            printf("Freq to remove: %dHz, magnitude: %g\n", freq, magnitude);
             data_freq_domain[i] = 0.0 + I * 0;
         }
     }
