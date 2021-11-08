@@ -44,18 +44,10 @@ FILE *open_audio_write(const char *);
 void read_audio(FILE *, double_t*, const uint32_t);
 void write_audio(const Complex *, FILE*);
 void close_audio(FILE*);
-float u8_to_float(uint8_t);
-uint8_t float_to_u8(float);
-uint32_t big_endian(uint32_t);
-void print_riff(const wav_riff);
-void print_fmt(const wav_fmt);
-void print_scdata(const wav_scdata);
 void clone_audio_meta(wav_meta*, FILE*, FILE*);
-
-wav_meta audio_meta;
-static uint16_t chunk_num = 0U;
-static sample_t data_buffer[BUFF_SIZE];
-//static uint32_t bytes_remaining = audio_meta.data.data_size;
-//static double_t multiplier = subchunk.fmt_sample_rate / (double_t) BUFF_SIZE;
-
-//@ToDo create if doesn't exists
+static void print_riff(const wav_riff);
+static void print_fmt(const wav_fmt);
+static void print_scdata(const wav_scdata);
+static float u8_to_float(uint8_t);
+static uint8_t double_to_u8(double_t, uint32_t);
+static uint32_t big_endian(uint32_t);

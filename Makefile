@@ -2,8 +2,8 @@ CC = gcc
 OBJ = audiofilter.o audiofile.o signal_processing.o
 FLAGS = -I
 
-audio_filter: $(OBJ)
-	$(CC) -o $@ $^ main.c
+audio_filter: $(OBJ) main.c
+	$(CC) -o $@ $(OBJ) main.c
 
 audiofilter.o: audiofilter.c audiofilter.h
 	$(CC) -c -o $@ $< $(FLAGS) audiofilter.h
