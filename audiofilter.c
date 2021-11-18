@@ -1,8 +1,8 @@
 #include "audiofilter.h"
 
 static audio_filter filter;
-static Complex out_buffer[BUFF_SIZE];
-static Complex fft_buffer[BUFF_SIZE];
+static _complex_ out_buffer[BUFF_SIZE];
+static _complex_ fft_buffer[BUFF_SIZE];
 static double_t data_double[BUFF_SIZE];
 
 void filter_init(const char *filename_in, const char *filename_out) {

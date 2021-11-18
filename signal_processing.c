@@ -10,7 +10,7 @@ uint16_t get_frequency(uint32_t index, uint32_t sample_rate) {
     return frequency;
 }
 
-void signal_filter(Complex data_freq_domain[], uint32_t sample_rate) {
+void signal_filter(_complex_ data_freq_domain[], uint32_t sample_rate) {
     for (uint32_t i = 1; i < BUFF_SIZE; i++) {
         double_t magnitude = sqrt(pow(creal(data_freq_domain[i]), 2) + pow(cimag(data_freq_domain[i]), 2));
         uint16_t freq = get_frequency(i, sample_rate);
@@ -30,7 +30,7 @@ void hamming_window(sample_t *samples, uint32_t N) {
 }
 
 /* Fast Fourier Transform */
-void fft(const double_t input_data[], Complex output_data[], uint32_t step, uint32_t N) {
+void fft(const double_t input_data[], _complex_ output_data[], uint32_t step, uint32_t N) {
     if (N == 1) {
         output_data[0] = input_data[0];
     } else {
@@ -39,8 +39,8 @@ void fft(const double_t input_data[], Complex output_data[], uint32_t step, uint
 
         uint32_t k;
         for (k = 0; k < N / 2; k++) {
-            Complex p = output_data[k];
-            Complex q = output_data[k + N / 2] * cexp(-2 * I * M_PI / N * k);
+            _complex_ p = output_data[k];
+            _complex_ q = output_data[k + N / 2] * cexp(-2 * I * M_PI / N * k);
             output_data[k] = p + q;
             output_data[k + N / 2] = p - q;
         }
@@ -48,7 +48,7 @@ void fft(const double_t input_data[], Complex output_data[], uint32_t step, uint
 }
 
 /* Inverse Fast Fourier Transform */
-static void _ifft(const Complex input_data[], Complex output_data[], uint32_t step, uint32_t N) {
+static void _ifft(const _complex_ input_data[], _complex_ output_data[], uint32_t step, uint32_t N) {
     if (N == 1) {
         output_data[0] = input_data[0];
     } else {
@@ -57,22 +57,22 @@ static void _ifft(const Complex input_data[], Complex output_data[], uint32_t st
 
         uint32_t k;
         for (k = 0; k < N / 2; k++) {
-            Complex p = output_data[k];
-            Complex q = output_data[k + N / 2] * cexp(2 * I * M_PI / N * k);
+            _complex_ p = output_data[k];
+            _complex_ q = output_data[k + N / 2] * cexp(2 * I * M_PI / N * k);
             output_data[k] = p + q;
             output_data[k + N / 2] = p - q;
         }
     }
 }
 
-void ifft(const Complex input_data[], Complex output_data[], uint32_t N) {
+void ifft(const _complex_ input_data[], _complex_ output_data[], uint32_t N) {
     _ifft(input_data, output_data, 1, N);
     for(int i = 0; i < N; i++) {
         output_data[i] /= N;
     }
 }
 
-void show(Complex buf[], uint8_t mode) {
+void show(_complex_ buf[], uint8_t mode) {
     if (mode) {
         for (int i = 0; i < BUFF_SIZE; i++)
             if (!cimag(buf[i]))

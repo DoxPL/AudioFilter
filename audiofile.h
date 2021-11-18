@@ -8,7 +8,7 @@
 #define OPEN_READ 0
 #define OPEN_WRITE 1
 
-typedef double complex Complex;
+typedef double complex _complex_;
 typedef uint8_t sample_t;
 
 typedef struct {
@@ -42,7 +42,7 @@ typedef struct {
 FILE *open_audio_read(const char *);
 FILE *open_audio_write(const char *);
 void read_audio(FILE *, double_t*, const uint32_t);
-void write_audio(const Complex *, FILE*);
+void write_audio(const _complex_ *, FILE*);
 void close_audio(FILE*);
 void clone_audio_meta(wav_meta*, FILE*, FILE*);
 static void print_riff(const wav_riff);

@@ -91,7 +91,7 @@ void read_audio(FILE *audio_file, double_t *out_buffer, const uint32_t bytes_to_
     }
 }
 
-void write_audio(const Complex *out_buffer, FILE *audio_file) {
+void write_audio(const _complex_ *out_buffer, FILE *audio_file) {
     for (uint32_t i = 0; i < BUFF_SIZE; i++) {
         if (data_buffer[i] < 0)
             data_buffer[i] = (sample_t)(creal(out_buffer[i]) * 256.0 - 256) & 0xFF;
