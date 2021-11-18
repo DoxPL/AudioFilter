@@ -16,4 +16,4 @@ audio_file.o: audiofile.c audiofile.h
 
 clean:
 	rm *.o
-	echo "Clean"
+	rm audio_filter
