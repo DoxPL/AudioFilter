@@ -17,3 +17,4 @@ Supported audio formats:<br />
 | Format     | Details |
 | ---      | ---       |
 | WAV  | Unsigned 8 bit PCM |
+| WAV  | Signed 16 bit PCM |
