@@ -5,6 +5,7 @@
 #define INCORRECT_ARG 10
 #define INIT_SUCCESS 0
 #define INIT_IO_ERROR 20
+#define INIT_UNSUPPORTED_AUDIO_FORMAT 21
 
 typedef struct {
     FILE *file_in;

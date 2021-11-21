@@ -66,5 +66,6 @@ int main(int argc, char *argv[]) {
         run_process();
         filter_destroy();
     }
+    free_buff_mem();
     return exit_code;
 }
