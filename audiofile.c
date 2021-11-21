@@ -1,7 +1,7 @@
 #include "audiofile.h"
 #include <stdio.h>
 
-wav_meta audio_meta;
+static wav_meta audio_meta;
 static uint16_t chunk_num = 0U;
 static sample_t data_buffer[BUFF_SIZE];
 
@@ -65,19 +65,40 @@ void clone_audio_meta(wav_meta *meta, FILE *in_file, FILE *out_file) {
     printf("Resolution: %d\n", meta->data.data_size / meta->fmt.fmt_sample_rate);
 }
 
-FILE *open_audio_read(const char *filename) {
-    FILE *audio_file = fopen(filename, "rb");
+static uint8_t dir_exists(const char *file_path) {
+    struct stat __stat__ = {0};
+    stat(file_path, &__stat__);
+    return (__stat__.st_mode & S_IFDIR) ? DIR_EXISTS : DIR_NOT_FOUND;
+}
+
+static uint8_t prepare_dir(const char *file_path) {
+    uint8_t exit_code = DIR_PREPARED;
+    char *dir_name = dirname(strdup(file_path)); 
+    if (dir_exists(dir_name) == DIR_NOT_FOUND && (mkdir(dir_name, 0755) != 0)) {
+        fprintf(stderr, "Cannot create directory: %s\n", dir_name);
+        exit_code = DIR_NOT_PREPARED;
+    }
+    free(dir_name);
+    return exit_code;
+}
+
+FILE *open_audio_read(const char *file_path) {
+    FILE *audio_file = fopen(file_path, "rb");
     if (!audio_file) {
-        puts("Cannot open file to read");
+        fprintf(stderr, "Cannot open file to read\n");
         return NULL;
     }
     return audio_file;
 }
 
-FILE *open_audio_write(const char *filename) {
-    FILE *audio_file = fopen(filename, "wb");
+FILE *open_audio_write(const char *file_path) {
+    if (prepare_dir(file_path)) {
+        return NULL;
+    }
+
+    FILE *audio_file = fopen(file_path, "wb");
     if (!audio_file) {
-        puts("Cannot open file to write");
+        fprintf(stderr, "Cannot open file to write\n");
         return NULL;
     }
     return audio_file;
@@ -93,10 +114,7 @@ void read_audio(FILE *audio_file, double_t *out_buffer, const uint32_t bytes_to_
 
 void write_audio(const _complex_ *out_buffer, FILE *audio_file) {
     for (uint32_t i = 0; i < BUFF_SIZE; i++) {
-        if (data_buffer[i] < 0)
-            data_buffer[i] = (sample_t)(creal(out_buffer[i]) * 256.0 - 256) & 0xFF;
-        else
-            data_buffer[i] = (sample_t)(creal(out_buffer[i]) * 256.0) & 0xFF;
+        data_buffer[i] = double_to_u8(creal(out_buffer[i]), i);
     }
     fwrite(data_buffer, sizeof(data_buffer), 1, audio_file);
 }

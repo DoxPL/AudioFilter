@@ -1,7 +1,10 @@
 #include "audiofile.h"
 #include "signal_processing.h"
 
-#define FILENAME_BUFF_SIZE 128
+#define FILE_PATH_BUFF_SIZE 512
+#define INCORRECT_ARG 10
+#define INIT_SUCCESS 0
+#define INIT_IO_ERROR 20
 
 typedef struct {
     FILE *file_in;
@@ -10,6 +13,6 @@ typedef struct {
     double_t multiplier;
 } audio_filter;
 
-void filter_init(const char*, const char*);
+uint8_t filter_init(const char*, const char*);
 void filter_destroy(void);
-void run_process();
+void run_process(void);
