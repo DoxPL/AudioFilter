@@ -3,7 +3,7 @@
 
 static wav_meta audio_meta;
 static uint16_t chunk_num = 0U;
-static sample_t data_buffer[BUFF_SIZE];
+static sample_t *data_buffer;
 
 static void print_riff(const wav_riff riff) {
     printf("Chunk ID: %d\n", big_endian(riff.chunk_id));
@@ -27,6 +27,16 @@ static void print_scdata(const wav_scdata data) {
     printf("Data size: %d\n", data.data_size);
 }
 
+static float u16_to_float(uint16_t sample_u16) {
+    float flt_value;
+    flt_value = ((float) sample_u16) / 65535.0;
+    if(flt_value > 1.0)
+        flt_value = 1.0;
+    if(flt_value < -1.0)
+        flt_value = -1.0;
+    return flt_value;
+}
+
 static float u8_to_float(uint8_t sample_u8) {
     float flt_value;
     flt_value = ((float) sample_u8) / 256.0;
@@ -37,8 +47,14 @@ static float u8_to_float(uint8_t sample_u8) {
     return flt_value;
 }
 
+static uint8_t double_to_u16(double_t sample_flt, uint32_t index) {
+    if (((uint16_t*)data_buffer)[index] < 0)
+        return (uint16_t)(sample_flt * 65535.0 - 65535) & 0xFFFF;
+    return (uint16_t)(sample_flt * 65535.0) & 0xFFFF;
+}
+
 static uint8_t double_to_u8(double_t sample_flt, uint32_t index) {
-    if (data_buffer[index] < 0)
+    if (((uint8_t*)data_buffer)[index] < 0)
         return (uint8_t)(sample_flt * 256.0 - 256) & 0xFF;
     return (uint8_t)(sample_flt * 256.0) & 0xFF;
 }
@@ -63,6 +79,23 @@ void clone_audio_meta(wav_meta *meta, FILE *in_file, FILE *out_file) {
     print_subchunk(meta->fmt);
     print_scdata(meta->data);
     printf("Resolution: %d\n", meta->data.data_size / meta->fmt.fmt_sample_rate);
+}
+
+void alloc_buff_mem(uint16_t bps) {
+    switch(bps) {
+        case PCM_U16:
+            data_buffer = (uint8_t*) malloc(BUFF_SIZE * sizeof(uint16_t));
+            break;
+        case PCM_U8:
+            data_buffer = (uint8_t*) malloc(BUFF_SIZE * sizeof(uint8_t));
+            break;
+        default:
+            break;
+    }
+}
+
+void free_buff_mem(void) {
+    free(data_buffer);
 }
 
 static uint8_t dir_exists(const char *file_path) {
@@ -104,19 +137,44 @@ FILE *open_audio_write(const char *file_path) {
     return audio_file;
 }
 
-void read_audio(FILE *audio_file, double_t *out_buffer, const uint32_t bytes_to_read) {
-    memset(&data_buffer, 0U, BUFF_SIZE);
-    fread(data_buffer, bytes_to_read, 1, audio_file);
-    for (int i=0; i < BUFF_SIZE; i++) {
-        out_buffer[i] = u8_to_float(data_buffer[i]);
+void read_audio(FILE *audio_file, double_t *out_buffer, uint16_t bps) {
+    switch(bps) {
+        case PCM_U16:
+            fread(data_buffer, BUFF_SIZE * sizeof(uint16_t), 1, audio_file);
+            for (int i=0; i < BUFF_SIZE; i++) {
+                out_buffer[i] = u16_to_float(((uint16_t*)data_buffer)[i]);
+            }
+            break;
+        case PCM_U8:
+            //memset(&data_buffer, 0U, BUFF_SIZE);
+            fread(data_buffer, BUFF_SIZE, 1, audio_file);
+            for (int i=0; i < BUFF_SIZE; i++) {
+                out_buffer[i] = u8_to_float(((uint8_t*)data_buffer)[i]);
+            }
+            break;
+        default:
+            printf("%d\n", audio_meta.fmt.fmt_bp_sample);
+            break;
     }
 }
 
-void write_audio(const _complex_ *out_buffer, FILE *audio_file) {
-    for (uint32_t i = 0; i < BUFF_SIZE; i++) {
-        data_buffer[i] = double_to_u8(creal(out_buffer[i]), i);
+void write_audio(const _complex_ *out_buffer, FILE *audio_file, uint16_t bps) {
+    switch(bps) {
+        case PCM_U16:
+            for (uint32_t i = 0; i < BUFF_SIZE; i++) {
+                ((uint8_t*)data_buffer)[i] = double_to_u16(creal(out_buffer[i]), i);
+            }
+            fwrite(data_buffer, BUFF_SIZE * sizeof(uint16_t), 1, audio_file);
+            break;
+        case PCM_U8:
+            for (uint32_t i = 0; i < BUFF_SIZE; i++) {
+                ((uint8_t*)data_buffer)[i] = double_to_u8(creal(out_buffer[i]), i);
+            }
+            fwrite(data_buffer, BUFF_SIZE, 1, audio_file);
+            break;
+        default:
+            break;
     }
-    fwrite(data_buffer, sizeof(data_buffer), 1, audio_file);
 }
 
 void close_audio(FILE *audio_file) {

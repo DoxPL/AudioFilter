@@ -22,7 +22,7 @@ void signal_filter(_complex_ data_freq_domain[], uint32_t sample_rate) {
     }
 }
 
-void hamming_window(sample_t *samples, uint32_t N) {
+void hamming_window(sample_t samples[], uint32_t N) {
     int i;
     for (i = 0; i < N; i++) {
         samples[i] *= (0.53836f - 0.46164f * cos((2 * M_PI * i) / (N - 1)));

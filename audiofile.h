@@ -13,6 +13,10 @@
 #define DIR_PREPARED 0
 #define DIR_NOT_PREPARED 1
 
+#define PCM_U16 16
+#define PCM_U8   8
+#define UNSUPPORTED_AUDIO_FORMAT 3
+
 typedef double complex _complex_;
 typedef uint8_t sample_t;
 
@@ -46,14 +50,18 @@ typedef struct {
 
 FILE *open_audio_read(const char *);
 FILE *open_audio_write(const char *);
-void read_audio(FILE *, double_t*, const uint32_t);
-void write_audio(const _complex_ *, FILE*);
+void read_audio(FILE *, double_t*, uint16_t);
+void write_audio(const _complex_ *, FILE*, uint16_t);
 void close_audio(FILE*);
 void clone_audio_meta(wav_meta*, FILE*, FILE*);
+void alloc_buff_mem(uint16_t);
+void free_buff_mem(void);
 static void print_riff(const wav_riff);
 static void print_fmt(const wav_fmt);
 static void print_scdata(const wav_scdata);
+static float u16_to_float(uint16_t);
 static float u8_to_float(uint8_t);
+static uint8_t double_to_u16(double_t, uint32_t);
 static uint8_t double_to_u8(double_t, uint32_t);
 static uint32_t big_endian(uint32_t);
 static uint8_t dir_exists(const char *);
