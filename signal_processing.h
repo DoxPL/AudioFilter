@@ -15,7 +15,7 @@ typedef struct {
 
 uint16_t get_frequency(uint32_t, uint32_t);
 void signal_filter(_complex_[], uint32_t);
-void hamming_window(sample_t*, uint32_t);
+void hamming_window(sample_t[], uint32_t);
 void fft(const double_t[], _complex_[], uint32_t, uint32_t);
 void ifft(const _complex_[], _complex_[], uint32_t);
 void show(_complex_[], uint8_t);
