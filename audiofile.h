@@ -13,11 +13,11 @@
 #define DIR_PREPARED 0
 #define DIR_NOT_PREPARED 1
 
+#define PCM_S32 32
 #define PCM_S16 16
 #define PCM_U8   8
 
 typedef double complex _complex_;
-typedef uint8_t sample_t;
 
 typedef struct {
     uint32_t chunk_id;
@@ -58,8 +58,10 @@ void free_buff_mem(void);
 static void print_riff(const wav_riff);
 static void print_fmt(const wav_fmt);
 static void print_scdata(const wav_scdata);
+static float s32_to_float(int32_t);
 static float s16_to_float(int16_t);
 static float u8_to_float(uint8_t);
+static int32_t double_to_s32(double_t, uint32_t);
 static int16_t double_to_s16(double_t, uint32_t);
 static uint8_t double_to_u8(double_t, uint32_t);
 static uint32_t big_endian(uint32_t);

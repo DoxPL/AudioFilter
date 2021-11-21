@@ -14,7 +14,7 @@ uint8_t filter_init(const char *filename_in, const char *filename_out) {
     }
     clone_audio_meta(&filter.file_meta, filter.file_in, filter.file_out);
     bps = filter.file_meta.fmt.fmt_bp_sample;
-    if (bps != PCM_S16 && bps != PCM_U8)
+    if (bps != PCM_S32 && bps != PCM_S16 && bps != PCM_U8)
         return INIT_UNSUPPORTED_AUDIO_FORMAT;
     alloc_buff_mem(bps);
     return INIT_SUCCESS;
