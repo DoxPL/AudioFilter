@@ -24,8 +24,9 @@ void usage(void) {
 }
 
 int main(int argc, char *argv[]) {
+    int exit_code = EXIT_SUCCESS;
     char opt;
-    char input_fn[FILENAME_BUFF_SIZE], output_fn[FILENAME_BUFF_SIZE];
+    char input_fn[FILE_PATH_BUFF_SIZE], output_fn[FILE_PATH_BUFF_SIZE];
     unsigned char mandatory_opts = 0U;
 
     while ((opt = getopt(argc, argv, "i:o:vf:t:")) != -1) {
@@ -36,6 +37,7 @@ int main(int argc, char *argv[]) {
                 break;
             case 'o':
                 strcpy(output_fn, optarg);
+                printf("%s\n", optarg);
                 mandatory_opts++;
                 break;
             case 'v':
@@ -51,17 +53,18 @@ int main(int argc, char *argv[]) {
                 break;
             default:
                 usage();
-                return EXIT_FAILURE;
+                return INCORRECT_ARG;
         }
     }
 
     if (mandatory_opts < 4) {
         usage();
-        return EXIT_FAILURE;
+        return INCORRECT_ARG;
     }
 
-    filter_init(input_fn, output_fn);
-    run_process();
-    filter_destroy();
-    return EXIT_SUCCESS;
+    if (!(exit_code = filter_init(input_fn, output_fn))) {
+        run_process();
+        filter_destroy();
+    }
+    return exit_code;
 }

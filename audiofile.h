@@ -1,12 +1,17 @@
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include <stdio.h>
 #include <complex.h>
+#include <libgen.h>
+#include <sys/stat.h>
 
 #define BUFF_SIZE 131072U
-#define OPEN_READ 0
-#define OPEN_WRITE 1
+#define DIR_EXISTS 1
+#define DIR_NOT_FOUND 0
+#define DIR_PREPARED 0
+#define DIR_NOT_PREPARED 1
 
 typedef double complex _complex_;
 typedef uint8_t sample_t;
@@ -51,3 +56,5 @@ static void print_scdata(const wav_scdata);
 static float u8_to_float(uint8_t);
 static uint8_t double_to_u8(double_t, uint32_t);
 static uint32_t big_endian(uint32_t);
+static uint8_t dir_exists(const char *);
+static uint8_t prepare_dir(const char *);
