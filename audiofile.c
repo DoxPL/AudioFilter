@@ -26,12 +26,22 @@ static void print_scdata(const wav_scdata data) {
     printf("Data size: %d\n", data.data_size);
 }
 
+static float s32_to_float(int32_t sample_s32) {
+    float flt_value;
+    flt_value = (float) sample_s32 / 2147483647.0;
+    if (flt_value > 1.0)
+        flt_value = 1.0;
+    else if (flt_value < -1.0)
+        flt_value = -1.0;
+    return flt_value;
+}
+
 static float s16_to_float(int16_t sample_s16) {
     float flt_value;
     flt_value = ((float) sample_s16) / 32767.0;
-    if(flt_value > 1.0)
+    if (flt_value > 1.0)
         flt_value = 1.0;
-    if(flt_value < -1.0)
+    else if (flt_value < -1.0)
         flt_value = -1.0;
     return flt_value;
 }
@@ -39,23 +49,29 @@ static float s16_to_float(int16_t sample_s16) {
 static float u8_to_float(uint8_t sample_u8) {
     float flt_value;
     flt_value = ((float) sample_u8) / 256.0;
-    if(flt_value > 1.0)
+    if (flt_value > 1.0)
         flt_value = 1.0;
-    if(flt_value < -1.0)
+    else if (flt_value < -1.0)
         flt_value = -1.0;
     return flt_value;
 }
 
-static int16_t double_to_s16(double_t sample_flt, uint32_t index) {
-    if (((int16_t*)data_buffer)[index] < -32768)
-        return (int16_t)(sample_flt * 32767 - 32767) & 0xFFFF;
-    return (int16_t)(sample_flt * 32767) & 0xFFFF;
+static int32_t double_to_s32(double_t sample, uint32_t index) {
+    if (((int32_t*)data_buffer)[index] < -2147483648)
+        return (int32_t)(sample * 2147483647 - 2147483647) & 0xFFFFFFFF;
+    return (int32_t)(sample * 2147483647) & 0xFFFFFFFF;
 }
 
-static uint8_t double_to_u8(double_t sample_flt, uint32_t index) {
+static int16_t double_to_s16(double_t sample, uint32_t index) {
+    if (((int16_t*)data_buffer)[index] < -32768)
+        return (int16_t)(sample * 32767 - 32767) & 0xFFFF;
+    return (int16_t)(sample * 32767) & 0xFFFF;
+}
+
+static uint8_t double_to_u8(double_t sample, uint32_t index) {
     if (((uint8_t*)data_buffer)[index] < 0)
-        return (uint8_t)(sample_flt * 256.0 - 256) & 0xFF;
-    return (uint8_t)(sample_flt * 256.0) & 0xFF;
+        return (uint8_t)(sample * 256.0 - 256) & 0xFF;
+    return (uint8_t)(sample * 256.0) & 0xFF;
 }
 
 static uint32_t big_endian(uint32_t num) {
@@ -82,6 +98,9 @@ void clone_audio_meta(wav_meta *meta, FILE *in_file, FILE *out_file) {
 
 void alloc_buff_mem(uint16_t bps) {
     switch(bps) {
+        case PCM_S32:
+            data_buffer = (int32_t*) malloc(BUFF_SIZE * sizeof(int32_t));
+            break;
         case PCM_S16:
             data_buffer = (int16_t*) malloc(BUFF_SIZE * sizeof(int16_t));
             break;
@@ -138,21 +157,27 @@ FILE *open_audio_write(const char *file_path) {
 }
 
 void read_audio(FILE *audio_file, double_t *out_buffer, uint16_t bps) {
+    uint32_t i;
     switch(bps) {
+        case PCM_S32:
+            fread(data_buffer, BUFF_SIZE * sizeof(int32_t), 1, audio_file);
+            for (i=0; i < BUFF_SIZE; i++) {
+                out_buffer[i] = s32_to_float(((int32_t*)data_buffer)[i]);
+            }
+            break;
         case PCM_S16:
             fread(data_buffer, BUFF_SIZE * sizeof(int16_t), 1, audio_file);
-            for (int i=0; i < BUFF_SIZE; i++) {
+            for (i=0; i < BUFF_SIZE; i++) {
                 out_buffer[i] = s16_to_float(((int16_t*)data_buffer)[i]);
             }
             break;
         case PCM_U8:
             fread(data_buffer, BUFF_SIZE, 1, audio_file);
-            for (int i=0; i < BUFF_SIZE; i++) {
+            for (i=0; i < BUFF_SIZE; i++) {
                 out_buffer[i] = u8_to_float(((uint8_t*)data_buffer)[i]);
             }
             break;
         default:
-            printf("%d\n", audio_meta.fmt.fmt_bp_sample);
             break;
     }
 }
@@ -160,6 +185,12 @@ void read_audio(FILE *audio_file, double_t *out_buffer, uint16_t bps) {
 void write_audio(const _complex_ *out_buffer, FILE *audio_file, uint16_t bps) {
     uint32_t i;
     switch(bps) {
+        case PCM_S32:
+            for (i = 0; i < BUFF_SIZE; i++) {
+                ((int32_t*)data_buffer)[i] = double_to_s32(creal(out_buffer[i]), i);
+            }
+            fwrite(data_buffer, BUFF_SIZE * sizeof(int32_t), 1, audio_file);
+            break;
         case PCM_S16:
             for (i = 0; i < BUFF_SIZE; i++) {
                 ((int16_t*)data_buffer)[i] = double_to_s16(creal(out_buffer[i]), i);
